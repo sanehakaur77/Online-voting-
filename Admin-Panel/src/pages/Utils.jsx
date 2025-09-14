@@ -1,0 +1,10 @@
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+const showSuccess=(message)=>{
+    toast.success(message);
+}
+const showError=(message)=>{
+    toast.error(message);
+}
+
+export { showSuccess, showError };
