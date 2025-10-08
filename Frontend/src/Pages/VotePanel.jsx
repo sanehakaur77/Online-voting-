@@ -10,7 +10,7 @@ const VotePanel = () => {
   useEffect(() => {
     const fetchParties = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/api/party");
+        const res = await axios.get("http://localhost:8082/api/party");
         setParties(res.data);
       } catch (error) {
         console.error("Error fetching parties:", error);
@@ -26,7 +26,7 @@ const VotePanel = () => {
     }
 
     try {
-      const res = await axios.post("http://localhost:8080/api/vote", { partyId });
+      const res = await axios.post("http://localhost:8082/api/vote", { partyId });
       alert(`You voted for ${partyName}`);
       setVotedParty(partyName);
 

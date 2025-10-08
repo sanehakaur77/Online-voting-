@@ -7,8 +7,9 @@ const app=express();
 app.use(express.json())
 const cors= require('cors');
 app.use(cors());
-const connection=require('./configs/db');
-const Port=process.env.PORT || 8080;
+const connectDB=require('./configs/db');
+connectDB();
+const Port=process.env.PORT || 8082;
 app.use('/api/user',authrouter);
 app.use('/api/party', partyRoutes);
 app.use('/api/vote', voterRoutes);

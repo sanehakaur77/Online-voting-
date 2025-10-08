@@ -1,233 +1,170 @@
-// import React, { useState } from "react";
-// import axios from "axios";
-// import { useNavigate } from "react-router-dom";
-// import { ToastContainer } from "react-toastify";
-// import { showSuccess, showError } from "../Pages/utils";
-// import "react-toastify/dist/ReactToastify.css";
-// const Vote= () => {
-//   const navigate = useNavigate(); 
-//   const [name, setName] = useState("");
-//   const [age, setAge] = useState(0);
-//   const [adhaarCard, setAadhar] = useState("");
-//   const [phoneNumber, setPhone] = useState("");
-
-//   const handleSubmit = async(e) => {
-//     e.preventDefault();
-    
-//     try {
-//       const res = await axios.post(
-//         "http://localhost:8080/api/user/vote",
-//         { name, age, adhaarCard, phoneNumber  },
-//         { headers: { "Content-Type": "application/json" } }
-//       );
-//     if(res.data.success){
-//       showSuccess(res.data.message);
-//       navigate('/votepanel');
-//     }
-   
-//     console.log(res.data);
-//     }
-//     catch(error){
-//     showError(error.message);
-    
-//     }
-//   };
-
-//   const isEligible = age >= 18;
-
-//   return (
-//     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-//       <div className="bg-white p-10 rounded-xl shadow-lg w-full max-w-lg">
-//         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Vote Registration</h2>
-//         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
-//           <input
-//             type="text"
-//             placeholder="Full Name"
-//             value={name}
-//             onChange={(e) => setName(e.target.value)}
-//             required
-//             className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-//           />
-
-//           <input
-//             type="number"
-//             placeholder="Age"
-//             value={age}
-//             onChange={(e) => setAge(e.target.value)}
-//             required
-//             className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-          
-//           />
-
-//           <input
-//             type="text"
-//             placeholder="Aadhar Card Number"
-//             value={adhaarCard}
-//             onChange={(e) => setAadhar(e.target.value)}
-//             required
-         
-//             className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-//           />
-
-//           <input
-//             type="tel"
-//             placeholder="Phone Number"
-//             value={phoneNumber}
-//             onChange={(e) => setPhone(e.target.value)}
-//             required
-            
-//             className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-//           />
-
-//           <button
-//             type="submit"
-//             disabled={!isEligible}
-//             className={`p-3 rounded-lg text-white font-medium transition ${
-//               isEligible ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-400 cursor-not-allowed"
-//             }`}
-//           >
-//             Submit Vote
-//           </button>
-
-//           {!isEligible && age && (
-//             <p className="text-red-500 text-sm text-center">
-//               You must be at least 18 years old to vote.
-//             </p>
-//           )}
-//         </form>
-//       </div>
-//       <ToastContainer />
-//     </div>
-//   );
-// };
-
-// export default Vote;
-
-
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import { showSuccess, showError } from "../Pages/utils";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const Vote = () => {
-  const navigate = useNavigate(); 
-  const [name, setName] = useState("");
-  const [age, setAge] = useState(0);
-  const [adhaarCard, setAadhaar] = useState("");   // ✅ spelling consistent
-  const [phoneNumber, setPhone] = useState("");
+const VoteRegistration = () => {
+  const navigate = useNavigate();
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    name: "",
+    age: "",
+    adhaarCard: "",
+    phoneNumber: "",
+  });
 
+  // Handle input changes
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Step controls
+  const nextStep = () => setStep((prev) => prev + 1);
+  const prevStep = () => setStep((prev) => prev - 1);
+
+  // Check age eligibility
+  const isEligible = Number(formData.age) >= 18;
+
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
+      const payload = {
+        ...formData,
+        age: Number(formData.age), // ensure age is a number
+      };
+
       const res = await axios.post(
-        "http://localhost:8080/api/user/voter",
-        { name, age, adhaarCard, phoneNumber },
+        "http://localhost:8082/api/user/voter", // make sure backend matches this route
+        payload,
         { headers: { "Content-Type": "application/json" } }
       );
 
       if (res.data.success) {
-        showSuccess(res.data.message);
-       setTimeout(()=>{
-          navigate("/votepanel");
-       },2000);
+        toast.success(res.data.message);
+        setTimeout(() => navigate("/votepanel"), 2000);
       }
-
-      console.log("Vote API Response:", res.data);
-    } catch (error) {
-      // 🔴 This will log the complete error object to console
-      console.error("Vote API Error:", error);
-
-      // 🔧 Show useful message in toast
-      if (error.response) {
-        // Backend returned an error response
-        console.error("Error Response Data:", error.response.data);
-        console.error("Error Status Code:", error.response.status);
-        console.error("Error Headers:", error.response.headers);
-        showError(error.response.data.message || "Something went wrong on server");
-      } else if (error.request) {
-        // Request was made but no response
-        console.error("No response received:", error.request);
-        showError("No response from server. Please try again later.");
-      } else {
-        // Something else went wrong
-        console.error("Request setup error:", error.message);
-        showError(error.message);
-      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Error occurred");
+      console.log(err.response?.data || err.message);
     }
   };
 
-  const isEligible = age >= 18;
-
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-10 rounded-xl shadow-lg w-full max-w-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          Vote Registration
-        </h2>
+  
+  <>
+    
+   <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 flex-col">
+       <div>
+           <h1 className="text-4xl mb-3 font-bold">Vote Registration Form</h1>
+         </div>
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-8">
+        {/* Progress Bar */}
+        <div className="flex justify-between mb-6">
+          {["User Info", "Contact Info"].map((label, index) => (
+            <div key={index} className="flex-1">
+              <div
+                className={`w-8 h-8 mx-auto rounded-full text-white flex items-center justify-center ${
+                  step > index ? "bg-green-500" : "bg-gray-300"
+                }`}
+              >
+                {index + 1}
+              </div>
+              <p className="text-xs text-center mt-1">{label}</p>
+            </div>
+          ))}
+        </div>
+          
+        {/* Form */}
+        
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Step 1: Name & Age */}
+          {step === 1 && (
+            <>
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+              />
+              <input
+                type="number"
+                name="age"
+                placeholder="Age"
+                value={formData.age}
+                onChange={handleChange}
+                required
+                className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+              />
+              {!isEligible && formData.age && (
+                <p className="text-red-500 text-sm text-center">
+                  You must be at least 18 years old to proceed.
+                </p>
+              )}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  disabled={!isEligible}
+                  className={`bg-gray-700 text-white p-3 rounded-lg hover:bg-gray-600 transition ${
+                    !isEligible ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          )}
 
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-          />
-
-          <input
-           type="number"
-            placeholder="Age"
-            value={age}
-            onChange={(e) => setAge(Number(e.target.value))}   // ✅ convert string → number
-            required
-            className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-          />
-
-          <input
-            type="text"
-            placeholder="Aadhaar Card Number"
-            value={adhaarCard}
-            onChange={(e) => setAadhaar(e.target.value)}
-            required
-            className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-          />
-
-          <input
-            type="tel"
-            placeholder="Phone Number"
-            value={phoneNumber}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-            className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-          />
-
-          <button
-            type="submit"
-            disabled={!isEligible}
-            className={`p-3 rounded-lg text-white font-medium transition ${
-              isEligible
-                ? "bg-gray-700 hover:bg-gray-600"
-                : "bg-gray-400 cursor-not-allowed"
-            }`}
-          >
-            Submit Vote
-          </button>
-
-          {!isEligible && age && (
-            <p className="text-red-500 text-sm text-center">
-              You must be at least 18 years old to vote.
-            </p>
+          {/* Step 2: Aadhaar & Phone Number */}
+          {step === 2 && (
+            <>
+              <input
+                type="text"
+                name="adhaarCard"
+                placeholder="Aadhaar Card Number"
+                value={formData.adhaarCard}
+                onChange={handleChange}
+                required
+                className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+              />
+              <input
+                type="tel"
+                name="phoneNumber"
+                placeholder="Phone Number"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                required
+                className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+              />
+              <div className="flex justify-between">
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="bg-gray-300 text-gray-800 p-3 rounded-lg hover:bg-gray-400 transition"
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition"
+                >
+                  Submit
+                </button>
+              </div>
+            </>
           )}
         </form>
       </div>
-      <ToastContainer />
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
+  </>
   );
 };
 
-export default Vote;
+export default VoteRegistration;
